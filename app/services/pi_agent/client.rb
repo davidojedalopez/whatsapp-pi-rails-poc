@@ -33,18 +33,24 @@ module PiAgent
 
       stdout, stderr, status = nil
 
+      args = [ command ]
+      args.push("--provider", ENV.fetch("PI_PROVIDER")) if ENV["PI_PROVIDER"].present?
+      args.push("--model", ENV.fetch("PI_MODEL")) if ENV["PI_MODEL"].present?
+      args.push(
+        "--print",
+        "--mode", "text",
+        "--no-tools",
+        "--no-context-files",
+        "--no-skills",
+        "--no-prompt-templates",
+        "--append-system-prompt", harness_dir.join("APPEND_SYSTEM.md").read,
+        prompt
+      )
+
       Timeout.timeout(timeout_seconds) do
         stdout, stderr, status = Open3.capture3(
           { "PI_OFFLINE" => ENV.fetch("PI_OFFLINE", "0") },
-          command,
-          "--print",
-          "--mode", "text",
-          "--no-tools",
-          "--no-context-files",
-          "--no-skills",
-          "--no-prompt-templates",
-          "--append-system-prompt", harness_dir.join("APPEND_SYSTEM.md").read,
-          prompt,
+          *args,
           chdir: harness_dir.to_s
         )
       end
@@ -63,6 +69,13 @@ module PiAgent
       Result.new(
         text: "I’m sorry — the agent took too long to respond. I can route this to a human.",
         mode: "pi_timeout",
+        raw_output: nil
+      )
+    rescue Errno::ENOENT => e
+      Rails.logger.warn("Pi command unavailable: #{e.message}")
+      Result.new(
+        text: "I’m sorry — the agent is unavailable right now. I can still route this to a human.",
+        mode: "pi_error",
         raw_output: nil
       )
     end

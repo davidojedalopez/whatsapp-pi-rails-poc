@@ -83,7 +83,9 @@ By default `WHATSAPP_SEND_MODE=log`, so replies are logged instead of sent to Me
    | `WHATSAPP_ALLOWED_SENDERS` | recommended | Comma-separated E.164 numbers allowed to use staging |
    | `PI_AGENT_MODE` | yes | `deterministic` or `pi` |
    | `PI_COMMAND` | for `pi` mode | Defaults to `pi` |
-   | `PI_AGENT_TIMEOUT_SECONDS` | no | Defaults to `30` |
+   | `PI_PROVIDER` | optional | Passed to `pi --provider`, e.g. `openai` |
+   | `PI_MODEL` | optional | Passed to `pi --model`, e.g. `local-gemma` |
+   | `PI_AGENT_TIMEOUT_SECONDS` | optional | Defaults to 30 |
 
 3. In Meta for Developers, configure the WhatsApp webhook callback URL:
 
