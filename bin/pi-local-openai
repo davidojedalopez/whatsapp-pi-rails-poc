@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+agent_dir="${PI_CODING_AGENT_DIR:-/tmp/pi-agent}"
+model="${PI_MODEL:-local-gemma}"
+mkdir -p "$agent_dir"
+
+ruby -rjson -e '
+  agent_dir = ENV.fetch("PI_CODING_AGENT_DIR", "/tmp/pi-agent")
+  model = ENV.fetch("PI_MODEL", "local-gemma")
+  base_url = ENV.fetch("OPENAI_BASE_URL")
+  config = {
+    "providers" => {
+      "local-openai" => {
+        "baseUrl" => base_url,
+        "api" => "openai-completions",
+        "apiKey" => "OPENAI_API_KEY",
+        "compat" => {
+          "supportsDeveloperRole" => false,
+          "supportsReasoningEffort" => false
+        },
+        "models" => [
+          {
+            "id" => model,
+            "name" => model,
+            "reasoning" => false,
+            "input" => ["text"],
+            "contextWindow" => 128000,
+            "maxTokens" => 4096,
+            "cost" => { "input" => 0, "output" => 0, "cacheRead" => 0, "cacheWrite" => 0 }
+          }
+        ]
+      }
+    }
+  }
+  File.write(File.join(agent_dir, "models.json"), JSON.pretty_generate(config))
+'
+
+exec pi "$@"
