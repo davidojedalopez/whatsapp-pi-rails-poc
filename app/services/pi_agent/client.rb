@@ -31,8 +31,6 @@ module PiAgent
       timeout_seconds = ENV.fetch("PI_AGENT_TIMEOUT_SECONDS", DEFAULT_TIMEOUT_SECONDS).to_i
       harness_dir = Rails.root.join("pi_harnesses/customer_whatsapp")
 
-      stdout, stderr, status = nil
-
       args = [ command ]
       args.push("--provider", ENV.fetch("PI_PROVIDER")) if ENV["PI_PROVIDER"].present?
       args.push("--model", ENV.fetch("PI_MODEL")) if ENV["PI_MODEL"].present?
@@ -47,13 +45,7 @@ module PiAgent
         prompt
       )
 
-      Timeout.timeout(timeout_seconds) do
-        stdout, stderr, status = Open3.capture3(
-          { "PI_OFFLINE" => ENV.fetch("PI_OFFLINE", "0") },
-          *args,
-          chdir: harness_dir.to_s
-        )
-      end
+      stdout, stderr, status = capture_pi_output(args, harness_dir, timeout_seconds)
 
       unless status.success?
         Rails.logger.warn("Pi command failed: #{stderr.to_s.truncate(500)}")
@@ -78,6 +70,40 @@ module PiAgent
         mode: "pi_error",
         raw_output: nil
       )
+    end
+    def capture_pi_output(args, harness_dir, timeout_seconds)
+      stdout = +""
+      stderr = +""
+      status = nil
+
+      Open3.popen3(
+        { "PI_OFFLINE" => ENV.fetch("PI_OFFLINE", "0") },
+        *args,
+        chdir: harness_dir.to_s
+      ) do |stdin, out, err, wait_thread|
+        stdin.close
+        stdout_reader = Thread.new { out.read }
+        stderr_reader = Thread.new { err.read }
+
+        unless wait_thread.join(timeout_seconds)
+          terminate_process(wait_thread.pid)
+          raise Timeout::Error
+        end
+
+        stdout = stdout_reader.value.to_s
+        stderr = stderr_reader.value.to_s
+        status = wait_thread.value
+      end
+
+      [ stdout, stderr, status ]
+    end
+
+    def terminate_process(pid)
+      Process.kill("TERM", pid)
+      sleep 0.5
+      Process.kill("KILL", pid)
+    rescue Errno::ESRCH
+      nil
     end
   end
 end
