@@ -1,0 +1,7 @@
+one:
+  customer: one
+  external_id: POC-1001
+  status: packed and ready to ship
+  total_cents: 4299
+  currency: USD
+  summary: Coffee sampler subscription box

@@ -1,0 +1,35 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "waba-id",
+      "changes": [
+        {
+          "field": "messages",
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "15557654321",
+              "phone_number_id": "phone-number-id"
+            },
+            "contacts": [
+              {
+                "profile": { "name": "David" },
+                "wa_id": "15551234567"
+              }
+            ],
+            "messages": [
+              {
+                "from": "15551234567",
+                "id": "wamid.test",
+                "timestamp": "1720000000",
+                "text": { "body": "Where is my order?" },
+                "type": "text"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

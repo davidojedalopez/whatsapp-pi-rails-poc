@@ -1,0 +1,6 @@
+one:
+  name: David
+  phone_e164: "+15551234567"
+  email: david@example.com
+  tier: founder
+  notes: POC test customer.
