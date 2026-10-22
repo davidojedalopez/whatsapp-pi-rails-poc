@@ -10,7 +10,7 @@ class ImageProcessingTest < ActiveSupport::TestCase
   end
 
   test "unsafe operation names are rejected" do
-    assert_raises(ImageProcessing::Error) do
+    assert_raises(ArgumentError) do
       ImageProcessing::Vips.source(Vips::Image.black(20, 20)).apply(system: "false").call
     end
   end
